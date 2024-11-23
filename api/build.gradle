@@ -30,13 +30,9 @@ sourceSets {
 
 test {
     testLogging {
-        debug {
-            events 'passed', 'skipped', 'failed'
-        }
-        
-        info {
-            events 'failed', 'skipped'
-        }
+        events 'passed', 'skipped', 'failed'
+        showStandardStreams = true
+        exceptionFormat 'short'
     }
 
     if (System.properties['test.profile'] == 'integration') {

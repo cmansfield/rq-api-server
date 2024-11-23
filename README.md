@@ -1,148 +1,65 @@
 # ReliaQuest Coding Challenge
+#### Coding challenge completed by: *Christopher Mansfield*
+<br>
 
-#### In this assessment you will be tasked with filling out the functionality of different methods that will be listed further down.
+### Overview
+This project is a RESTful API server that provides *version 2* for the employee endpoints.
+Because this service relies on the information provided by the *version 1* service, this
+service is effectively a **decorator** for the server deployment.
 
-These methods will require some level of API interactions with Mock Employee API at http://localhost:8112/api/v1/employee.
+This means this project extends the functionality of version 1 without modifying the original
+codebase. That comes with a few caveats, including but not limited to: 
+- This service is not standalone
+- Increased network latency
+- Decreased Reliability
+- More data is queried for the endpoints
+- Prevents optimizations such as caching, or RPCs
+- Changes to the original server may break this service
+- The modules are tightly coupled
 
-Please keep the following in mind when doing this assessment: 
-* clean coding practices
-* test driven development 
-* logging
-* scalability
+For example, the `EmployeeService::getHighestSalary` method's  space complexity is **O(n)** because
+retrieve all the employees before finding the highest salary.
 
-See the section **How to Run Mock Employee API** for further instruction on starting the Mock Employee API.
+We cannot introduce caching because we don't have an independent datastore, and we're providing long term support
+for version 1. This means we must query the data every time we need it because there's a chance an employee could
+have been created or deleted using the version 1 api. 
 
-### Endpoints to implement (API module)
+<br>
 
-_See `com.reliaquest.api.controller.IEmployeeController` for details._
+### Integration Tests
+The integration tests are located in the `test.integration` directory and end with the `IT` postfix. These
+tests are meant to test end-to-end functionality of the API. This requires the server to be running in 
+order to run these tests.
 
-getAllEmployees()
+Because the server is rate limited, the integration tests are *not* run by default and can take a few minutes
+to complete. The tests will retry and wait a few times before failing. 
 
-    output - list of employees
-    description - this should return all employees
+To run the integration tests, first start the server.
+```bash
+./gradlew :server:bootRun
+```
 
-getEmployeesByNameSearch(...)
+Either use the `Integration API Tests` run configuration in IntelliJ IDEA or run the following:
 
-    path input - name fragment
-    output - list of employees
-    description - this should return all employees whose name contains or matches the string input provided
+```bash
+./gradlew :api:test -Dtest.profile=integration
+```
+<br>
 
-getEmployeeById(...)
+### Unit Tests
+The unit tests are standalone and do not require any deployments. They are located 
+in the `test.unit` directory and end with the `Test` postfix. There are two different testing frameworks 
+utilized for the unit tests: **Spock** and **Mockito**. Usually, only one of testing frameworks is used, but I 
+wanted to demonstrate both in this project. The Spock tests are located in the `test.unit.groovy` package and the Mockito 
+tests are located in the `test.unit.mockito` package. 
 
-    path input - employee ID
-    output - employee
-    description - this should return a single employee
+The Unit tests are automatically run when the project is built, or with the following command:
 
-getHighestSalaryOfEmployees()
+```bash
+./gradlew :api:test
+```
+<br>
 
-    output - integer of the highest salary
-    description - this should return a single integer indicating the highest salary of amongst all employees
-
-getTop10HighestEarningEmployeeNames()
-
-    output - list of employees
-    description - this should return a list of the top 10 employees based off of their salaries
-
-createEmployee(...)
-
-    body input - attributes necessary to create an employee
-    output - employee
-    description - this should return a single employee, if created, otherwise error
-
-deleteEmployeeById(...)
-
-    path input - employee ID
-    output - name of the employee
-    description - this should delete the employee with specified id given, otherwise error
-
-### Endpoints from Mock Employee API (Server module)
-
-    request:
-        method: GET
-        full route: http://localhost:8112/api/v1/employee
-    response:
-        {
-            "data": [
-                {
-                    "id": "4a3a170b-22cd-4ac2-aad1-9bb5b34a1507",
-                    "employee_name": "Tiger Nixon",
-                    "employee_salary": 320800,
-                    "employee_age": 61,
-                    "employee_title": "Vice Chair Executive Principal of Chief Operations Implementation Specialist",
-                    "employee_email": "tnixon@company.com",
-                },
-                ....
-            ],
-            "status": "Successfully processed request."
-        }
----
-    request:
-        method: GET
-        path: 
-            id (String)
-        full route: http://localhost:8112/api/v1/employee/{id}
-        note: 404-Not Found, if entity is unrecognizable
-    response:
-        {
-            "data": {
-                "id": "5255f1a5-f9f7-4be5-829a-134bde088d17",
-                "employee_name": "Bill Bob",
-                "employee_salary": 89750,
-                "employee_age": 24,
-                "employee_title": "Documentation Engineer",
-                "employee_email": "billBob@company.com",
-            },
-            "status": ....
-        }
----
-    request:
-        method: POST
-        body: 
-            name (String | not blank),
-            salary (Integer | greater than zero),
-            age (Integer | min = 16, max = 75),
-            title (String | not blank)
-        full route: http://localhost:8112/api/v1/employee
-    response:
-        {
-            "data": {
-                "id": "d005f39a-beb8-4390-afec-fd54e91d94ee",
-                "employee_name": "Jill Jenkins",
-                "employee_salary": 139082,
-                "employee_age": 48,
-                "employee_title": "Financial Advisor",
-                "employee_email": "jillj@company.com",
-            },
-            "status": ....
-        }
----
-    request:
-        method: DELETE
-        body:
-            name (String | not blank)
-        full route: http://localhost:8112/api/v1/employee/{name}
-    response:
-        {
-            "data": true,
-            "status": ....
-        }
-
-### How to Run Mock Employee API (Server module)
-
-Start **Server** Spring Boot application.
-`./gradlew server:bootRun`
-
-Each invocation of **Server** application triggers a new list of mock employee data. While live testing, you'll want to keep 
-this server running if you require consistent data. Additionally, the web server will randomly choose when to rate
-limit requests, so keep this mind when designing/implementing the actual Employee API.
-
-_Note_: Console logs each mock employee upon startup.
-
-### Code Formatting
-
-This project utilizes Gradle plugin [Diffplug Spotless](https://github.com/diffplug/spotless/tree/main/plugin-gradle) to enforce format
-and style guidelines with every build. 
-
-To resolve any errors, you must run **spotlessApply** task.
-`./gradlew spotlessApply`
-
+### Final Thoughts
+I enjoyed working on this challenge and I hope you enjoy reviewing it. I look forward to discussing my design choices 
+with you and would appreciate feedback if any.
