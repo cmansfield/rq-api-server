@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.reliaquest.api.annotation.RetryTest;
 import com.reliaquest.api.model.Employee;
+import com.reliaquest.server.model.CreateMockEmployeeInput;
 import io.micrometer.common.util.StringUtils;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -21,10 +22,11 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
-// @ActiveProfiles("integration")
+@ActiveProfiles("integration")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class EmployeeControllerIT {
@@ -49,7 +51,7 @@ class EmployeeControllerIT {
     }
 
     @Test
-    @RetryTest(5)
+    @RetryTest(value = 5, delay = 95_000)
     public void testGetAllEmployees() {
         var response = restTemplate.exchange(
                 fullUri + "/employee", HttpMethod.GET, null, new ParameterizedTypeReference<List<Employee>>() {});
@@ -60,7 +62,7 @@ class EmployeeControllerIT {
     }
 
     @Test
-    @RetryTest(5)
+    @RetryTest(value = 5, delay = 95_000)
     public void testGetEmployeesByNameSearch() throws UnsupportedEncodingException {
         var responseAll = restTemplate.exchange(
                 fullUri + "/employee", HttpMethod.GET, null, new ParameterizedTypeReference<List<Employee>>() {});
@@ -84,7 +86,7 @@ class EmployeeControllerIT {
     }
 
     @Test
-    @RetryTest(5)
+    @RetryTest(value = 5, delay = 95_000)
     public void testGetEmployeeById() {
         var responseAll = restTemplate.exchange(
                 fullUri + "/employee", HttpMethod.GET, null, new ParameterizedTypeReference<List<Employee>>() {});
@@ -102,7 +104,7 @@ class EmployeeControllerIT {
     }
 
     @Test
-    @RetryTest(5)
+    @RetryTest(value = 5, delay = 95_000)
     public void testGetHighestSalaryOfEmployees() {
         var responseAll = restTemplate.exchange(
                 fullUri + "/employee", HttpMethod.GET, null, new ParameterizedTypeReference<List<Employee>>() {});
@@ -112,7 +114,7 @@ class EmployeeControllerIT {
         var highestSalary =
                 employees.stream().map(Employee::salary).max(Integer::compareTo).orElseThrow();
 
-        var response = restTemplate.exchange(fullUri + "/highestSalary", HttpMethod.GET, null, Integer.class);
+        var response = restTemplate.exchange(fullUri + "/employee/highestSalary", HttpMethod.GET, null, Integer.class);
         Integer result = response.hasBody() ? response.getBody() : null;
 
         assertNotNull(result);
@@ -120,7 +122,7 @@ class EmployeeControllerIT {
     }
 
     @Test
-    @RetryTest(5)
+    @RetryTest(value = 5, delay = 95_000)
     public void testGetTopTenHighestEarningEmployeeNames() {
         var responseAll = restTemplate.exchange(
                 fullUri + "/employee", HttpMethod.GET, null, new ParameterizedTypeReference<List<Employee>>() {});
@@ -131,7 +133,7 @@ class EmployeeControllerIT {
         var top = employees.subList(0, 10).stream().map(Employee::name).toList();
 
         var response = restTemplate.exchange(
-                fullUri + "/topTenHighestEarningEmployeeNames",
+                fullUri + "/employee/topTenHighestEarningEmployeeNames",
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<String>>() {});
@@ -143,18 +145,17 @@ class EmployeeControllerIT {
     }
 
     @Test
-    @RetryTest(5)
+    @RetryTest(value = 5, delay = 95_000)
     public void testCreateEmployee() {
-        var employee = Employee.builder()
-                .name("John Doe")
-                .salary(56000)
-                .age(32)
-                .title("Sir Employee")
-                .build();
+        CreateMockEmployeeInput input = new CreateMockEmployeeInput();
+        input.setName("John Doe");
+        input.setSalary(56000);
+        input.setAge(32);
+        input.setTitle("Sir Employee");
 
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Employee> request = new HttpEntity<>(employee, headers);
+        HttpEntity<CreateMockEmployeeInput> request = new HttpEntity<>(input, headers);
 
         var response = restTemplate.exchange(fullUri + "/employee", HttpMethod.POST, request, Employee.class);
         Employee result = response.hasBody() ? response.getBody() : null;
@@ -162,14 +163,14 @@ class EmployeeControllerIT {
         assertNotNull(result);
         assertNotNull(result.id());
         assertFalse(StringUtils.isBlank(result.email()));
-        assertEquals(employee.name(), result.name());
-        assertEquals(employee.salary(), result.salary());
-        assertEquals(employee.age(), result.age());
-        assertEquals(employee.title(), result.title());
+        assertEquals(input.getName(), result.name());
+        assertEquals(input.getSalary(), result.salary());
+        assertEquals(input.getAge(), result.age());
+        assertEquals(input.getTitle(), result.title());
     }
 
     @Test
-    @RetryTest(5)
+    @RetryTest(value = 5, delay = 95_000)
     public void testDeleteEmployeeById() {
         var responseAll = restTemplate.exchange(
                 fullUri + "/employee", HttpMethod.GET, null, new ParameterizedTypeReference<List<Employee>>() {});
@@ -179,10 +180,10 @@ class EmployeeControllerIT {
         var employee = employees.get(0);
 
         var uri = String.format("%s%s%s", fullUri, "/employee/", employee.id());
-        var response = restTemplate.exchange(uri, HttpMethod.DELETE, null, Boolean.class);
-        Boolean result = response.hasBody() ? response.getBody() : null;
+        var response = restTemplate.exchange(uri, HttpMethod.DELETE, null, String.class);
+        String result = response.hasBody() ? response.getBody() : null;
 
-        assertNotNull(result);
-        assertTrue(result);
+        assertTrue(StringUtils.isNotBlank(result));
+        assertEquals(employee.name(), result);
     }
 }

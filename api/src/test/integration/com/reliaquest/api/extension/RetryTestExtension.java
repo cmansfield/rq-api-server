@@ -27,6 +27,7 @@ public class RetryTestExtension implements TestTemplateInvocationContextProvider
     public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
         RetryTest retryTest = context.getTestMethod().get().getAnnotation(RetryTest.class);
         int retries = retryTest.value();
+        var delay = retryTest.delay();
         var current = 1;
 
         while (current < retries) {
@@ -36,11 +37,14 @@ public class RetryTestExtension implements TestTemplateInvocationContextProvider
                 }
 
                 log.info(
-                        "Retrying test method: {}. Retry {} out of {}",
+                        "Retrying test method: {}{}. Retry {} out of {}",
+                        (delay > 0L) ? "waiting " + delay + "ms before " : "",
                         context.getTestMethod().get().getName(),
                         current,
                         retries);
-
+                if (delay > 0L) {
+                    Thread.sleep(delay);
+                }
                 context.getExecutableInvoker().invoke(context.getTestMethod().get(), context.getRequiredTestInstance());
                 return;
             } catch (Throwable e) {

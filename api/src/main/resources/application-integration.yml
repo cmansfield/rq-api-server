@@ -7,6 +7,11 @@ spring:
     name: employee-api-integration
 
 api:
+  server-uri: http://localhost:8112/api/v1
+  connection-timeout: 3000
+  read-timeout: 3000
+
+integration:
   server-uri: http://localhost
   path: api/v2
   connection-timeout: 3000

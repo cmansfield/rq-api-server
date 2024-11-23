@@ -38,6 +38,16 @@ test {
             events 'failed', 'skipped'
         }
     }
+
+    if (System.properties['test.profile'] == 'integration') {
+        exclude '**/*Test.class'
+        include '**/**IT.class'
+    } else if (System.properties['test.profile'] == 'all') {
+        include '**'
+    } else {
+        include '**'
+        exclude '**/**IT.class'
+    }
 }
 
 springBoot {

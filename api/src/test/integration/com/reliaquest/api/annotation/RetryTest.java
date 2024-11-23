@@ -14,6 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * but will retry the test until it passes, or until it reaches the
  * {@linkplain #value specified value}.
  *
+ * <p>Optional {@linkplain #delay delay} can be specified to wait between retries
+ * in milliseconds.
+ *
  *<p>Good for tests the rely on external services that may be flaky.
  */
 @Target({ElementType.METHOD})
@@ -21,4 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(RetryTestExtension.class)
 public @interface RetryTest {
     int value() default 1;
+
+    long delay() default 0;
 }
