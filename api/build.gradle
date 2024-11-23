@@ -13,12 +13,14 @@ dependencies {
     testImplementation 'org.spockframework:spock-spring:2.3-groovy-4.0'
 
     implementation project(':server')
+    testImplementation 'org.projectlombok:lombok:1.18.26'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.26'
 }
 
 sourceSets {
     test {
         java {
-            srcDirs = ['src/test/unit/mockito']
+            srcDirs = ['src/test/unit/mockito', 'src/test/integration']
         }
         groovy {
             srcDirs = ['src/test/unit/groovy']

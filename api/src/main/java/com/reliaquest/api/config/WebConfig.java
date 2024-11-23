@@ -18,11 +18,24 @@ public class WebConfig {
     @Value("${api.read-timeout}")
     private long readTimeout;
 
+    @Value("${api.read-timeout}")
+    private long itConnectionTimeout;
+
+    @Value("${api.read-timeout}")
+    private long itReadTimeout;
+
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder.rootUri(serverUri)
                 .setConnectTimeout(Duration.ofMillis(connectionTimeout))
                 .setReadTimeout(Duration.ofMillis(readTimeout))
+                .build();
+    }
+
+    @Bean
+    public RestTemplate restTemplateIntegration(RestTemplateBuilder builder) {
+        return builder.setConnectTimeout(Duration.ofMillis(itConnectionTimeout))
+                .setReadTimeout(Duration.ofMillis(itReadTimeout))
                 .build();
     }
 }

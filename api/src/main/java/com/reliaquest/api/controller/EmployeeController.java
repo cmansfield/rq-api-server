@@ -1,9 +1,9 @@
 package com.reliaquest.api.controller;
 
+import com.reliaquest.api.model.Employee;
 import com.reliaquest.api.service.EmployeeService;
 import com.reliaquest.server.controller.MockEmployeeController;
 import com.reliaquest.server.model.CreateMockEmployeeInput;
-import com.reliaquest.server.model.MockEmployee;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,20 +13,20 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v2/employee")
 @RequiredArgsConstructor
-public class EmployeeController implements IEmployeeController<MockEmployee, CreateMockEmployeeInput> {
+public class EmployeeController implements IEmployeeController<Employee, CreateMockEmployeeInput> {
 
     private final EmployeeService employeeService;
 
     /**
-     * Get a list of all employees.
-     * This controller sources its information from api version 1 for employees. {@link MockEmployeeController}
+     * Get a list of <em>all</em> employees.
+     * This controller sources its information from api version 1 for employees.
+     * See {@link MockEmployeeController} for more information about version 1.
      *
-     * @author      Christopher Mansfield
-     * @return      Returns a list of {@link MockEmployee} objects
+     * @return      Returns a list of {@link Employee} objects
      */
     @Override
     @GetMapping()
-    public ResponseEntity<List<MockEmployee>> getAllEmployees() {
+    public ResponseEntity<List<Employee>> getAllEmployees() {
         return ResponseEntity.ok(employeeService.getAllEmployees());
     }
 
@@ -38,7 +38,7 @@ public class EmployeeController implements IEmployeeController<MockEmployee, Cre
      */
     @Override
     @GetMapping("/search/{searchString}")
-    public ResponseEntity<List<MockEmployee>> getEmployeesByNameSearch(@PathVariable String searchString) {
+    public ResponseEntity<List<Employee>> getEmployeesByNameSearch(@PathVariable String searchString) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
@@ -50,7 +50,7 @@ public class EmployeeController implements IEmployeeController<MockEmployee, Cre
      */
     @Override
     @GetMapping("/{id}")
-    public ResponseEntity<MockEmployee> getEmployeeById(@PathVariable String id) {
+    public ResponseEntity<Employee> getEmployeeById(@PathVariable String id) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
@@ -83,7 +83,7 @@ public class EmployeeController implements IEmployeeController<MockEmployee, Cre
      */
     @Override
     @PostMapping()
-    public ResponseEntity<MockEmployee> createEmployee(@RequestBody CreateMockEmployeeInput employeeInput) {
+    public ResponseEntity<Employee> createEmployee(@RequestBody CreateMockEmployeeInput employeeInput) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
